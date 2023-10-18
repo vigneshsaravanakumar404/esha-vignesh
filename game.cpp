@@ -55,10 +55,12 @@ int main(void)
     }
 
     Vehicle wanderers[5];
-    for (int i = 0; i < 5; i++)
-    {
-        wanderers[i]= Vehicle(rand() % 790, rand() % 440);
-    }
+    wanderers[0]= Vehicle(rand() % 790, rand() % 440);
+    wanderers[1] = Vehicle(rand() % 790, rand() % 440);
+    wanderers[2] = Vehicle(rand() % 790, rand() % 440);
+    wanderers[3] = Vehicle(rand() % 790, rand() % 440);
+    wanderers[4] = Vehicle(rand() % 790, rand() % 440);
+    
 
     bool updateRandomCircles = true;
     clock_t lastUpdateTime = clock();
@@ -85,6 +87,12 @@ int main(void)
     rotationThree = 0;
     rotationFour = 0;
     rotationFive = 0;
+
+    float distanceFromOne =0;
+    float distanceFromTwo;
+    float distanceFromThree;
+    float distanceFromFour;
+    float distanceFromFive;
 
     while (!WindowShouldClose())
     {
@@ -125,6 +133,16 @@ int main(void)
             {
                 wanderers[0].desiredLocation.x = rand() % 790;
                 wanderers[0].desiredLocation.y = rand() % 440;
+                for (int i = 0; i < 50; i++)
+                {
+                    distanceFromOne = sqrtf((foods[i].xPos - wanderers[0].location.x) * (foods[i].xPos - wanderers[0].location.x) + (foods[i].yPos - wanderers[0].location.y) * (foods[i].yPos - wanderers[0].location.y));
+                    std:cout << i << ": " << distanceFromOne<<"\n";
+                    if ( distanceFromOne <= 50)
+                    {
+                        
+                        foods[i].color = WHITE;
+                    }
+                }
                 lastUpdateTimePosOne = currentTime;
             }
 
@@ -172,6 +190,7 @@ int main(void)
         }
         */
 
+        
         wanderers[0].arrive(wanderers[0].desiredLocation);
         wanderers[0].update();
         wanderers[1].arrive(wanderers[1].desiredLocation);
@@ -216,6 +235,9 @@ int main(void)
         DrawTexturePro(ship, shipRectangle, newRectangleThree, shipCenter, rotationThree* RAD2DEG + 90, WHITE);
         DrawTexturePro(ship, shipRectangle, newRectangleFour, shipCenter, rotationFour* RAD2DEG + 90, WHITE);
         DrawTexturePro(ship, shipRectangle, newRectangleFive, shipCenter, rotationFive * RAD2DEG + 90, WHITE);
+
+
+        DrawCircleLines(wanderers[0].location.x, wanderers[0].location.y, 50, BLACK);
 
         EndDrawing();
     }
