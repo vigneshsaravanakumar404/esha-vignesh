@@ -3,245 +3,333 @@
 #include <thread>
 #include <iostream>
 #include "Header.h"
-
+#include <string>
 
 using namespace std;
 
-typedef struct Food
-{
+// TODO: Fix rotation of agent
+// TODO: Make the agent not slow down when it is close to the target
+// TODO: Movement even when there is no food in 
+// TODO: Cross Mutation Logic when two agents are next to each other
+// TODO: Delete the least performing player
+
+// Structs
+typedef struct Food {
 public:
     float xPos;
     float yPos;
     Color color;
     Food() {};
-    Food(float x, float y, Color colorS)
-    {
+    Food(float x, float y, Color colorS) {
         xPos = x;
         yPos = y;
         color = colorS;
     }
+} Food;
+typedef struct Ship {
+public: 
+
+};
+typedef struct AgentOne {
+public: 
+    float visionRange;
+    float xPos;
+    float yPos;
+    float maxSpeed = 3.0f;
+    clock_t timer;
+    float randTime = 0.0f;
+    Vehicle vehicle;
+
+    float targetX;
+    float targetY;
+
+    int foodEaten = 0;
+};
+typedef struct AgentTwo {
+    float visionRange = 5.0f;
+    float xPos;
+    float yPos;
+    float maxSpeed;
+    clock_t timer;
+    float randTime = 0.0f;
+    Vehicle vehicle;
+
+    float targetX;
+    float targetY;
+
+    int foodEaten = 0;
 };
 
+// Global Variables
+float randomCircleInterval = 30.0f;
+const int SCREEN_WIDTH = 900;
+const int SCREEN_HEIGHT = 1600;
 
 
-int main(void)
-{
-    InitWindow(800, 450, "raylib [core] example - basic window");
+// Main Loop
+int main(void) {
+    
+    // Initialization
+    InitWindow(SCREEN_HEIGHT, SCREEN_WIDTH, "raylib [core] example - basic window");
     SetTargetFPS(60);
-    float x = 0;
-    float y = 0;
-    float theta;
+    Texture2D AgentOneTexture = LoadTexture("C:\\Users\\Vigne\\OneDrive\\Desktop\\red.png");
+    Texture2D AgentTwoTexture = LoadTexture("C:\\Users\\Vigne\\OneDrive\\Desktop\\blue.png");
 
-    float desiredX = 200;
-    float desiredY = 300;
-    int random = rand() % 9;
-
-    float rotationOne;
-    float rotationTwo;
-    float rotationThree;
-    float rotationFour;
-    float rotationFive;
-
-
-    Color colors[5] = {ORANGE, BLUE, GREEN, RED, VIOLET};
-
-
-
+    // Resize the textures
+    AgentOneTexture.width /= 5;
+    AgentOneTexture.height /= 5;
+    AgentTwoTexture.width /= 5;
+    AgentTwoTexture.height /= 5;
+   
+    // Food
+    Color colors[5] = { ORANGE, BLUE, GREEN, RED, VIOLET };
     Food foods[50];
-    for (int i = 0; i < 50; i++)
-    {
-        foods[i] = Food(rand() % 790, rand() % 440, colors[rand() % 5]);
-
+    for (int i = 0; i < 50; i++) {
+        foods[i] = Food(rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, colors[rand() % 5]);
     }
 
-    Vehicle wanderers[5];
-    wanderers[0]= Vehicle(rand() % 790, rand() % 440);
-    wanderers[1] = Vehicle(rand() % 790, rand() % 440);
-    wanderers[2] = Vehicle(rand() % 790, rand() % 440);
-    wanderers[3] = Vehicle(rand() % 790, rand() % 440);
-    wanderers[4] = Vehicle(rand() % 790, rand() % 440);
+    // Vehicles
+    AgentOne agents1[5];
+    AgentTwo agents2[5];
+
+    // Current time
+    clock_t currentTime = clock();
+
+    // Round Timer
+    clock_t roundTimer = clock();
     
+    for (int i = 0; i < 5; i++) {
+        // Has small range, big speed
+        agents1[i].vehicle = Vehicle(rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, agents1->maxSpeed);
+        agents1[i].vehicle.maxspeed = 3.0f;
+        agents1[i].vehicle.maxforce = 0.1f;
+        agents1[i].vehicle.r = 3.0f;
+        agents1[i].visionRange = 5.0f;
+        agents1[i].timer = clock();
+        agents1[i].randTime = 3.5 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (5 - 3.5)));
+        agents1[i].targetX = rand() % SCREEN_HEIGHT;
+        agents1[i].targetY = rand() % SCREEN_WIDTH;
 
-    bool updateRandomCircles = true;
-    clock_t lastUpdateTime = clock();
-    float randomCircleInterval = 30.0f; // Change random circle positions every 5 seconds
+        // Has big range, small speed
+        agents2[i].vehicle = Vehicle(rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, agents2->maxSpeed);
+        agents2[i].vehicle.maxspeed = 1.5f;
+        agents2[i].vehicle.maxforce = 0.1f;
+        agents2[i].vehicle.r = 3.0f;
+        agents2[i].visionRange = 100.0f;
+        agents2[i].timer = clock();
+        agents2[i].randTime = 3.5 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (5 - 3.5)));
+        agents2[i].targetX = rand() % SCREEN_HEIGHT;
+        agents2[i].targetY = rand() % SCREEN_WIDTH;
+	}
 
-    bool updatePosition = true;
-    clock_t lastUpdateTimePosOne = clock();
-    clock_t lastUpdateTimePosTwo = clock();
-    clock_t lastUpdateTimePosThree = clock();
-    clock_t lastUpdateTimePosFour = clock();
-    clock_t lastUpdateTimePosFive = clock();
+    
+    // Main Loop
+    while (!WindowShouldClose()) {
 
-    float randomPosIntervalOne = 3.0f; // Change position  positions every 5 seconds
-    float randomPosIntervalTwo = 5.0f;
-    float randomPosIntervalThree = 2.0f;
-    float randomPosIntervalFour = 4.0f;
-    float randomPosIntervalFive = 6.0f;
-
-    Texture2D ship = LoadTexture("ships.png"); 
-    ship.width *= 0.1;
-    ship.height *= 0.1;
-    rotationOne = 0;
-    rotationTwo = 0;
-    rotationThree = 0;
-    rotationFour = 0;
-    rotationFive = 0;
-
-    float distanceFromOne =0;
-    float distanceFromTwo;
-    float distanceFromThree;
-    float distanceFromFour;
-    float distanceFromFive;
-
-    while (!WindowShouldClose())
-    {
+        // Rest
         BeginDrawing();
         ClearBackground(WHITE);
 
-        //main simualtion timer for 30 seconds
-        if (updateRandomCircles)
-        {
-            clock_t currentTime = clock();
-            float elapsedSeconds = (currentTime - lastUpdateTime) / CLOCKS_PER_SEC;
-
-            if (elapsedSeconds >= randomCircleInterval)
-            {
-
-                for (int i = 0; i < 50; i++)
-                {
-                    foods[i] = Food(rand() % 790, rand() % 440, colors[rand()%5]);
-
-                }
-                lastUpdateTime = currentTime;
-            }
-
-        }
-
-        //updates position every 3 seconds to simulate wandering
-        if (updatePosition)
-        {
-            clock_t currentTime = clock();
-            float elapsedSecondsOne = (currentTime - lastUpdateTimePosOne) / CLOCKS_PER_SEC;
-            float elapsedSecondsTwo = (currentTime - lastUpdateTimePosTwo) / CLOCKS_PER_SEC;
-            float elapsedSecondsThree = (currentTime - lastUpdateTimePosThree) / CLOCKS_PER_SEC;
-            float elapsedSecondsFour = (currentTime - lastUpdateTimePosFour) / CLOCKS_PER_SEC;
-            float elapsedSecondsFive = (currentTime - lastUpdateTimePosFive) / CLOCKS_PER_SEC;
-
-
-            if (elapsedSecondsOne >= randomPosIntervalOne)
-            {
-                wanderers[0].desiredLocation.x = rand() % 790;
-                wanderers[0].desiredLocation.y = rand() % 440;
-                for (int i = 0; i < 50; i++)
-                {
-                    distanceFromOne = sqrtf((foods[i].xPos - wanderers[0].location.x) * (foods[i].xPos - wanderers[0].location.x) + (foods[i].yPos - wanderers[0].location.y) * (foods[i].yPos - wanderers[0].location.y));
-                    std:cout << i << ": " << distanceFromOne<<"\n";
-                    if ( distanceFromOne <= 50)
-                    {
-                        
-                        foods[i].color = WHITE;
-                    }
-                }
-                lastUpdateTimePosOne = currentTime;
-            }
-
-            if (elapsedSecondsTwo >= randomPosIntervalTwo)
-            {
-                wanderers[1].desiredLocation.x = rand() % 790;
-                wanderers[1].desiredLocation.y = rand() % 440;
-                lastUpdateTimePosTwo = currentTime;
-            }
-            if (elapsedSecondsThree >= randomPosIntervalThree)
-            {
-                wanderers[2].desiredLocation.x = rand() % 790;
-                wanderers[2].desiredLocation.y = rand() % 440;
-                lastUpdateTimePosThree = currentTime;
-
-            }
-            if (elapsedSecondsFour >= randomPosIntervalFour)
-            {
-               
-                wanderers[3].desiredLocation.x = rand() % 790;
-                wanderers[3].desiredLocation.y = rand() % 440;
-                lastUpdateTimePosFour = currentTime;
-
-            }
-            if (elapsedSecondsFive >= randomPosIntervalFive)
-            {
-                wanderers[4].desiredLocation.x = rand() % 790;
-                wanderers[4].desiredLocation.y = rand() % 440;
-                lastUpdateTimePosFive = currentTime;
-            }
-
-        }
-
-        // Draw random circles in the background
-        for (int i = 0; i < 50; i++)
-        {
+        // Draw Food
+        for (int i = 0; i < 50; i++) {
             DrawCircle(foods[i].xPos, foods[i].yPos, 5.0f, foods[i].color);
         }
 
-        /*
-        for (int i = 0; i < 5; i++)
-        {
-            wanderers[i].arrive(wanderers[i].desiredLocation);
-            wanderers[i]
+        // Draw Agents
+        for (int i = 0; i < 5; i++) {
+            // Calculate the top-left corner coordinates to center the texture at the agent's location
+            int x1 = agents1[i].vehicle.location.x - AgentOneTexture.width / 2;
+            int y1 = agents1[i].vehicle.location.y - AgentOneTexture.height / 2;
+            int x2 = agents2[i].vehicle.location.x - AgentTwoTexture.width / 2;
+            int y2 = agents2[i].vehicle.location.y - AgentTwoTexture.height / 2;
+
+            // Draw the agents using the texture centered at the stored coordinates
+            DrawTexture(AgentOneTexture, x1, y1, WHITE);
+            DrawTexture(AgentTwoTexture, x2, y2, WHITE);
+
+            // Rectangles Representing Speed for AgentOne
+            float speedFraction = agents1[i].vehicle.maxspeed / 25.0f;
+            int redComponent = static_cast<int>(255 * (1.0f - speedFraction));
+            int greenComponent = static_cast<int>(255 * speedFraction);
+            Color highlightColor = { redComponent, greenComponent, 0, 128 };
+            int outlineThickness = 2;  
+            Color outlineColor = { 0, 0, 0, 200 };
+            DrawRectangleLinesEx({ (float)x1 - outlineThickness, (float)y1 - outlineThickness, (float)AgentOneTexture.width + 2 * outlineThickness, (float)AgentOneTexture.height + 2 * outlineThickness }, outlineThickness, outlineColor);
+            DrawRectangle(x1, y1, AgentOneTexture.width, AgentOneTexture.height, highlightColor);
+
+            // Circles Representing Vision Range for AgentTwo
+            DrawCircleLines(agents2[i].vehicle.location.x, agents2[i].vehicle.location.y, agents2[i].visionRange, BLACK);
+
+            // Display the number of food particles eaten by the agent on the center of the agent
+            DrawText(std::to_string(agents1[i].foodEaten).c_str(), agents1[i].vehicle.location.x, agents1[i].vehicle.location.y, 20, BLACK);
+            DrawText(std::to_string(agents2[i].foodEaten).c_str(), agents2[i].vehicle.location.x, agents2[i].vehicle.location.y, 20, BLACK);
+
+            // if more than randTime seconds have passed, change the target
+            if (clock() - agents1[i].timer > agents1[i].randTime * CLOCKS_PER_SEC) {
+				agents1[i].timer = clock();
+				agents1[i].randTime = rand() % 10 + 1;
+				agents1[i].targetX = rand() % SCREEN_HEIGHT;
+				agents1[i].targetY = rand() % SCREEN_WIDTH;
+			}
+                      
+            // Move towards food or random target
+            int numberOfFoodParticles = sizeof(foods) / sizeof(Food); 
+            bool foundFood = false;
+
+            for (int j = 0; j < numberOfFoodParticles; j++) {
+                float dx = foods[j].xPos - agents2[i].vehicle.location.x;
+                float dy = foods[j].yPos - agents2[i].vehicle.location.y;
+                float distance = sqrt(dx * dx + dy * dy);
+
+                if (distance < agents2[i].visionRange) {
+                    agents2[i].targetX = foods[j].xPos;
+                    agents2[i].targetY = foods[j].yPos;
+                    foundFood = true;
+                    break; 
+                }
+            }
+            // If no food particle is within range, then set a random target
+            if (!foundFood && (clock() - currentTime) > 5 * CLOCKS_PER_SEC) {
+                agents2[i].targetX = rand() % SCREEN_HEIGHT;
+                agents2[i].targetY = rand() % SCREEN_WIDTH;
+                currentTime = clock();  
+            }
+
+            // Make the agent move towards the target
+            agents1[i].vehicle.arrive(Vector2{ agents1[i].targetX, agents1[i].targetY });
+            agents1[i].vehicle.update();
+            agents2[i].vehicle.arrive(Vector2{ agents2[i].targetX, agents2[i].targetY });
+            agents2[i].vehicle.update();
+
+            // Delete Food
+            for (int j = 0; j < numberOfFoodParticles; j++) {
+				float dx = foods[j].xPos - agents1[i].vehicle.location.x;
+				float dy = foods[j].yPos - agents1[i].vehicle.location.y;
+				float distance = sqrt(dx * dx + dy * dy);
+
+                if (distance < 10.0f) {
+					foods[j].xPos = 10000;
+					foods[j].yPos = 10000;
+					foods[j].color = colors[rand() % 5];
+                    agents1[i].foodEaten++;
+				}
+			}   
+            for (int j = 0; j < numberOfFoodParticles; j++) {
+                float dx = foods[j].xPos - agents2[i].vehicle.location.x;
+				float dy = foods[j].yPos - agents2[i].vehicle.location.y;
+				float distance = sqrt(dx * dx + dy * dy);
+
+                if (distance < 5.0f) {
+					foods[j].xPos = 10000;
+					foods[j].yPos = 10000;
+					foods[j].color = colors[rand() % 5];
+                    agents2[i].foodEaten++;
+				}
+            }
+
+            // Timer
+            DrawText(std::to_string(30-((clock() - roundTimer) / CLOCKS_PER_SEC)).c_str(), SCREEN_HEIGHT - 50, 50, 20, BLACK);
+
+            // Rounds
+            if (clock() - roundTimer > 30 * CLOCKS_PER_SEC) {
+                // Reset
+                roundTimer = clock();
+                for (int j = 0; j < 50; j++) {
+                    foods[j] = Food(rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, colors[rand() % 5]);
+                }
+
+                // if two agents are next to each other both of them get the highest speed and vision range between them
+                for (int j = 0; j < 5; j++) {
+                    for (int k = 0; k < 5; k++) {
+						float dx = agents1[j].vehicle.location.x - agents2[k].vehicle.location.x;
+						float dy = agents1[j].vehicle.location.y - agents2[k].vehicle.location.y;
+						float distance = sqrt(dx * dx + dy * dy);
+
+                        if (distance < 10.0f) {
+							agents1[j].vehicle.maxspeed *= 1.5;
+							agents2[k].visionRange *= 1.5;
+
+						}
+					}
+				}
+                
+
+                // Evolution Logic
+                int maxFood1 = -1, maxFood2 = -1;
+                int secondMaxFood1 = -1, secondMaxFood2 = -1;
+                int thirdMaxFood1 = -1, thirdMaxFood2 = -1;
+                int minFood1 = INT_MAX, minFood2 = INT_MAX;
+                int maxIdx1 = -1, maxIdx2 = -1;
+                int secondIdx1 = -1, secondIdx2 = -1;
+                int thirdIdx1 = -1, thirdIdx2 = -1;
+                int minIdx1 = -1, minIdx2 = -1;
+
+                for (int i = 0; i < 5; i++) {
+                    // Logic for AgentOne
+                    if (agents1[i].foodEaten > maxFood1) {
+                        thirdMaxFood1 = secondMaxFood1;
+                        secondMaxFood1 = maxFood1;
+                        maxFood1 = agents1[i].foodEaten;
+
+                        thirdIdx1 = secondIdx1;
+                        secondIdx1 = maxIdx1;
+                        maxIdx1 = i;
+                    }
+
+                    if (agents1[i].foodEaten < minFood1) {
+                        minFood1 = agents1[i].foodEaten;
+                        minIdx1 = i;
+                    }
+
+                    // Logic for AgentTwo
+                    if (agents2[i].foodEaten > maxFood2) {
+                        thirdMaxFood2 = secondMaxFood2;
+                        secondMaxFood2 = maxFood2;
+                        maxFood2 = agents2[i].foodEaten;
+
+                        thirdIdx2 = secondIdx2;
+                        secondIdx2 = maxIdx2;
+                        maxIdx2 = i;
+                    }
+
+                    if (agents2[i].foodEaten < minFood2) {
+                        minFood2 = agents2[i].foodEaten;
+                        minIdx2 = i;
+                    }
+                }
+
+                // Apply multipliers to AgentOne and AgentTwo
+                if (maxIdx1 != -1) agents1[maxIdx1].vehicle.maxspeed *= 1.5;
+                if (secondIdx1 != -1) agents1[secondIdx1].vehicle.maxspeed *= 1.35;
+                if (thirdIdx1 != -1) agents1[thirdIdx1].vehicle.maxspeed *= 1.1;
+
+                if (maxIdx2 != -1) agents2[maxIdx2].visionRange *= 1.5;
+                if (secondIdx2 != -1) agents2[secondIdx2].visionRange *= 1.35;
+                if (thirdIdx2 != -1) agents2[thirdIdx2].visionRange *= 1.1;
+
+                // "Delete" the least-performing agents by moving them far away
+                if (minIdx1 != -1) {
+                    agents1[minIdx1].vehicle.location.x = 10000;
+                    agents1[minIdx1].vehicle.location.y = 10000;
+                }
+                if (minIdx2 != -1) {
+                    agents2[minIdx2].vehicle.location.x = 10000;
+                    agents2[minIdx2].vehicle.location.y = 10000;
+                }
+
+                // Reset food eaten for the next round
+                for (int i = 0; i < 5; i++) {
+                    agents1[i].foodEaten = 0;
+                    agents2[i].foodEaten = 0;
+                }
+            }
+
+
+
         }
-        */
-
-        
-        wanderers[0].arrive(wanderers[0].desiredLocation);
-        wanderers[0].update();
-        wanderers[1].arrive(wanderers[1].desiredLocation);
-        wanderers[1].update();
-        wanderers[2].arrive(wanderers[2].desiredLocation);
-        wanderers[2].update();
-        wanderers[3].arrive(wanderers[3].desiredLocation);
-        wanderers[3].update();
-        wanderers[4].arrive(wanderers[4].desiredLocation);
-        wanderers[4].update();
-
-        float angleOne = atan2f(wanderers[0].desiredLocation.y - wanderers[0].location.y, wanderers[0].desiredLocation.x - wanderers[0].location.x);
-        float angleDiffOne = angleOne - rotationOne;
-        rotationOne += angleDiffOne * 0.05f; 
-
-        float angleTwo = atan2f(wanderers[1].desiredLocation.y - wanderers[1].location.y, wanderers[1].desiredLocation.x - wanderers[1].location.x);
-        float angleDiffTwo = angleTwo - rotationTwo;
-        rotationTwo += angleDiffTwo * 0.05f;
-
-        float angleThree = atan2f(wanderers[2].desiredLocation.y - wanderers[2].location.y, wanderers[2].desiredLocation.x - wanderers[2].location.x);
-        float angleDiffThree = angleThree - rotationThree;
-        rotationThree += angleDiffThree * 0.05f;
-
-        float angleFour = atan2f(wanderers[3].desiredLocation.y - wanderers[3].location.y, wanderers[3].desiredLocation.x - wanderers[3].location.x);
-        float angleDiffFour = angleFour - rotationFour;
-        rotationFour += angleDiffFour * 0.05f;
-
-        float angleFive = atan2f(wanderers[4].desiredLocation.y - wanderers[4].location.y, wanderers[4].desiredLocation.x - wanderers[4].location.x);
-        float angleDiffFive = angleFive - rotationFive;
-        rotationFive += angleDiffFive * 0.05f;
-      
-        Rectangle shipRectangle = { 0,0, ship.width, ship.height };
-        Rectangle newRectangleOne = { wanderers[0].location.x,wanderers[0].location.y, ship.width, ship.height };
-        Rectangle newRectangleTwo = { wanderers[1].location.x,wanderers[1].location.y, ship.width, ship.height };
-        Rectangle newRectangleThree = { wanderers[2].location.x,wanderers[2].location.y, ship.width, ship.height };
-        Rectangle newRectangleFour = { wanderers[3].location.x,wanderers[3].location.y, ship.width, ship.height };
-        Rectangle newRectangleFive = { wanderers[4].location.x,wanderers[4].location.y, ship.width, ship.height };
-        Vector2 shipCenter = { ship.width / 2, ship.height / 2 };
-
-        DrawTexturePro(ship, shipRectangle, newRectangleOne, shipCenter, rotationOne * RAD2DEG + 90, WHITE);
-        DrawTexturePro(ship, shipRectangle, newRectangleTwo, shipCenter, rotationTwo* RAD2DEG + 90, WHITE);
-        DrawTexturePro(ship, shipRectangle, newRectangleThree, shipCenter, rotationThree* RAD2DEG + 90, WHITE);
-        DrawTexturePro(ship, shipRectangle, newRectangleFour, shipCenter, rotationFour* RAD2DEG + 90, WHITE);
-        DrawTexturePro(ship, shipRectangle, newRectangleFive, shipCenter, rotationFive * RAD2DEG + 90, WHITE);
-
-
-        DrawCircleLines(wanderers[0].location.x, wanderers[0].location.y, 50, BLACK);
 
         EndDrawing();
     }
-
 
     CloseWindow();
     return 0;
