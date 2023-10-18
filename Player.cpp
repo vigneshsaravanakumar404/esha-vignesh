@@ -4,31 +4,28 @@
 #include "Header.h"
 
 using namespace std;
-
-Vehicle::Vehicle(void)
-{
+Vehicle::Vehicle(void) {
 
 }
-
-Vehicle::Vehicle(float x, float y)
+Vehicle::Vehicle(float x, float y, float maxSpeed)
 {
-	acceleration = Vector2{0.0f, 0.0f};
-	velocity = Vector2{0.0f, 0.0f};
-	location = Vector2{x, y};
+	acceleration = Vector2{ 0.0f, 0.0f };
+	velocity = Vector2{ 0.0f, 0.0f };
+	location = Vector2{ x, y };
 	r = 3.0;
-	maxspeed = 3.0f;
-	maxforce = 0.1f;
-	desiredLocation = Vector2{0.0f, 0.0f};
+	maxspeed = maxSpeed;
+	maxforce = 0.5f;
+	desiredLocation = Vector2{ 0.0f, 0.0f };
 }
 
 void Vehicle::update()
 {
-	velocity = Vector2Add(acceleration, velocity);
+	velocity = Vector2Add(velocity, acceleration);
 	Vector2ClampValue(velocity, 0.0f, maxspeed);
-	location = Vector2Add(velocity, location);
-	acceleration = Vector2Multiply(Vector2{0.0f,0.0f}, acceleration);
-		
+	location = Vector2Add(location, velocity);
+	acceleration = Vector2{ 0.0f, 0.0f };
 }
+
 
 void Vehicle::applyForce(Vector2 force)
 {
@@ -37,13 +34,13 @@ void Vehicle::applyForce(Vector2 force)
 
 void Vehicle::arrive(Vector2 target) {
 	Vector2 desired = Vector2Subtract(target, location);
-	float d = sqrt((desired.x)* (desired.x) + (desired.y)*(desired.y));
+	float d = sqrt((desired.x) * (desired.x) + (desired.y) * (desired.y));
 	desired = Vector2Normalize(desired);
 	if (d < 100) {
 		float m = map(d, 0, 100, 0, maxspeed);
 		desired = Vector2Scale(desired, m);
 	}
-	else 
+	else
 	{
 		desired = Vector2Scale(desired, maxspeed);
 
@@ -57,4 +54,3 @@ void Vehicle::arrive(Vector2 target) {
 float Vehicle::map(float value, float fromLow, float fromHigh, float toLow, float toHigh) {
 	return (value - fromLow) / (fromHigh - fromLow) * (toHigh - toLow) + toLow;
 }
-
