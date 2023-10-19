@@ -7,11 +7,8 @@
 
 using namespace std;
 
-// TODO: Fix rotation of agent
 // TODO: Make the agent not slow down when it is close to the target
 // TODO: Movement even when there is no food in 
-// TODO: Create visual for cross mutation for change in blue speed
-// TODO: Center red triangle after vision range increases
 
 
 // Structs
@@ -74,6 +71,7 @@ typedef struct AgentTwo {
 float randomCircleInterval = 30.0f;
 const int SCREEN_WIDTH = 900;
 const int SCREEN_HEIGHT = 1600;
+const int ROUND_DURATION = 10;
 
 
 // Main Loop
@@ -82,8 +80,8 @@ int main(void) {
     // Initialization
     InitWindow(SCREEN_HEIGHT, SCREEN_WIDTH, "raylib [core] example - basic window");
     SetTargetFPS(60);
-    Texture2D AgentOneTexture = LoadTexture("C:\\Users\\eshav\\OneDrive\\Desktop\\red.png");
-    Texture2D AgentTwoTexture = LoadTexture("C:\\Users\\eshav\\OneDrive\\Desktop\\blue.png");
+    Texture2D AgentOneTexture = LoadTexture("C:\\Users\\Vigne\\OneDrive\\Desktop\\red.png");
+    Texture2D AgentTwoTexture = LoadTexture("C:\\Users\\Vigne\\OneDrive\\Desktop\\blue.png");
 
     // Resize the textures
     AgentOneTexture.width /= 5;
@@ -184,11 +182,11 @@ int main(void) {
                 agents1[i].rotationOne += angleDiffOne * 0.05f;
                 Vector2 shipCenter = { AgentOneTexture.width / 2, AgentOneTexture.height / 2 };
                 DrawTexturePro(AgentOneTexture, shipRectangle, newRectangleOne, shipCenter, agents1[i].rotationOne * RAD2DEG + 90, WHITE);
-
-                //
+                
+                // Circles Representing Vision Range for AgentOne
                 if (agents1[i].hasRadius)
                 {
-                    DrawCircleLines(agents1[i].vehicle.location.x, agents1[i].vehicle.location.y, agents1[i].visionRange+10, BLACK);
+                    DrawCircleLines(agents1[i].vehicle.location.x, agents1[i].vehicle.location.y, agents1[i].visionRange + 35, BLACK);
 
                 }
 
@@ -200,7 +198,7 @@ int main(void) {
                 Color highlightColor = { redComponent, greenComponent, 0, 128 };
                 int outlineThickness = 2;
                 Color outlineColor = { 0, 0, 0, 200 };
-                DrawRectangleLinesEx({ (float)x1 - outlineThickness, (float)y1 - outlineThickness, (float)AgentOneTexture.width + 2 * outlineThickness, (float)AgentOneTexture.height + 2 * outlineThickness}, outlineThickness, outlineColor);
+                DrawRectangleLinesEx({ (float)x1 - outlineThickness, (float)y1 - outlineThickness, (float)AgentOneTexture.width + 2 * outlineThickness, (float)AgentOneTexture.height + 2 * outlineThickness }, outlineThickness, outlineColor);
                 DrawRectangle(x1, y1, AgentOneTexture.width, AgentOneTexture.height, highlightColor);
 
                 // Display the number of food particles eaten by the agent on the center of the agent
@@ -214,7 +212,7 @@ int main(void) {
                     agents1[i].targetY = rand() % SCREEN_WIDTH;
                 }
 
-                
+
 
                 // Make the agent move towards the target
                 agents1[i].vehicle.arrive(Vector2{ agents1[i].targetX, agents1[i].targetY });
@@ -270,7 +268,7 @@ int main(void) {
                     DrawRectangle(x2, y2, AgentTwoTexture.width, AgentTwoTexture.height, highlightColor);
 
                 }
-            
+
                 // If no food particle is within range, then set a random target
                 if (!foundFood && (clock() - currentTime) > 5 * CLOCKS_PER_SEC) {
                     agents2[i].targetX = rand() % SCREEN_HEIGHT;
@@ -295,14 +293,14 @@ int main(void) {
                         agents2[i].foodEaten++;
                     }
                 }
-            
+
             }
-            
+
             // Timer
-            DrawText(std::to_string(30 - ((clock() - roundTimer) / CLOCKS_PER_SEC)).c_str(), SCREEN_HEIGHT - 50, 50, 20, BLACK);
+            DrawText(std::to_string(ROUND_DURATION - ((clock() - roundTimer) / CLOCKS_PER_SEC)).c_str(), SCREEN_HEIGHT - 50, 50, 20, BLACK);
 
             // Rounds
-            if (clock() - roundTimer > 30 * CLOCKS_PER_SEC) {
+            if (clock() - roundTimer > ROUND_DURATION * CLOCKS_PER_SEC) {
                 // Reset
                 roundTimer = clock();
                 for (int j = 0; j < 50; j++) {
@@ -324,16 +322,17 @@ int main(void) {
                                     agents1[j].visionRange *= 1.5;
                                     agents2[k].vehicle.maxspeed *= 1.5;
                                     agents1[k].hasRadius = true;
-                                    agents2[j].hasBox = true;                                }
+                                    agents2[j].hasBox = true;
+                                }
                             }
-                            
+
                         }
 
                     }
-                    
+
                 }
 
-                
+
 
 
                 // Evolution Logic
@@ -363,11 +362,11 @@ int main(void) {
                         if (agents1[i].foodEaten < minFood1) {
                             minFood1 = agents1[i].foodEaten;
                             minIdx1 = i;
-                            
+
                         }
-                        
-                    }                    
-                    
+
+                    }
+
 
                     // Logic for AgentTwo
                     if (agents2[i].valid2)
@@ -386,7 +385,7 @@ int main(void) {
                             minFood2 = agents2[i].foodEaten;
                             minIdx2 = i;
                         }
-                        
+
                     }
                 }
 
@@ -407,7 +406,7 @@ int main(void) {
                     agents2[minIdx2].valid2 = false;
                 }
 
-                
+
 
                 // Reset food eaten for the next round
                 for (int i = 0; i < 5; i++) {
