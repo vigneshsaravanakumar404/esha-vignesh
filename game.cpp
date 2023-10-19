@@ -13,6 +13,7 @@ using namespace std;
 // TODO: Create visual for cross mutation for change in blue speed
 // TODO: Center red triangle after vision range increases
 
+
 // Structs
 typedef struct Food {
 public:
@@ -45,6 +46,8 @@ public:
     float targetY;
 
     int foodEaten = 0;
+
+    float rotationOne = 0;
 };
 typedef struct AgentTwo {
     bool valid2;
@@ -167,7 +170,14 @@ int main(void) {
                 int x1 = agents1[i].vehicle.location.x - AgentOneTexture.width / 2;
                 int y1 = agents1[i].vehicle.location.y - AgentOneTexture.height / 2;
 
-                DrawTexture(AgentOneTexture, x1, y1, WHITE);
+                //rotate agents
+                Rectangle shipRectangle = { 0,0, AgentOneTexture.width, AgentOneTexture.height };
+                Rectangle newRectangleOne = { agents1[i].vehicle.location.x,agents1[i].vehicle.location.y, AgentOneTexture.width, AgentOneTexture.height };
+                float angleOne = atan2f(agents1[i].targetY - agents1[i].vehicle.location.y, agents1[i].targetX - agents1[i].vehicle.location.x);
+                float angleDiffOne = angleOne - agents1[i].rotationOne;
+                agents1[i].rotationOne += angleDiffOne * 0.05f;
+                Vector2 shipCenter = { AgentOneTexture.width / 2, AgentOneTexture.height / 2 };
+                DrawTexturePro(AgentOneTexture, shipRectangle, newRectangleOne, shipCenter, agents1[i].rotationOne * RAD2DEG + 90, WHITE);
 
                 // Rectangles Representing Speed for AgentOne
                 float speedFraction = agents1[i].vehicle.maxspeed / 25.0f;
@@ -189,6 +199,8 @@ int main(void) {
                     agents1[i].targetX = rand() % SCREEN_HEIGHT;
                     agents1[i].targetY = rand() % SCREEN_WIDTH;
                 }
+
+                
 
                 // Make the agent move towards the target
                 agents1[i].vehicle.arrive(Vector2{ agents1[i].targetX, agents1[i].targetY });
