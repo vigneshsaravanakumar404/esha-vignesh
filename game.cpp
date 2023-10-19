@@ -11,7 +11,6 @@ using namespace std;
 // TODO: Make the agent not slow down when it is close to the target
 // TODO: Movement even when there is no food in 
 // TODO: Cross Mutation Logic when two agents are next to each other
-// TODO: Delete the least performing player for red
 
 // Structs
 typedef struct Food {
