@@ -167,8 +167,16 @@ int main(void) {
                 float angleDiffOne = angleOne - agents1[i].rotationOne;
                 agents1[i].rotationOne += angleDiffOne * 0.05f;
                 Vector2 shipCenter = { AgentOneTexture.width / 2, AgentOneTexture.height / 2 };
-                DrawTexturePro(AgentOneTexture, shipRectangle, newRectangleOne, shipCenter, agents1[i].rotationOne * RAD2DEG + 90, WHITE);
-                
+                DrawTexturePro(
+                    AgentOneTexture,
+                    shipRectangle,
+                    newRectangleOne,
+                    shipCenter,
+                    90 + (atan2(agents1[i].vehicle.velocity.y, agents1[i].vehicle.velocity.x) * 180 / PI),
+                    WHITE
+                );
+                cout << atan2(agents1[i].vehicle.velocity.x, agents1[i].vehicle.velocity.y) * 180/PI << "\n";
+
                 // Circles Representing Vision Range for AgentOne
                 if (agents1[i].hasRadius)
                 {
@@ -202,7 +210,7 @@ int main(void) {
 
 
                 // Make the agent move towards the target
-                agents1[i].vehicle.arrive(Vector2{ agents1[i].targetX, agents1[i].targetY });
+                agents1[i].vehicle.arrive(Vector2{ agents1[i].targetX, agents1[i].targetY }, GetFrameTime());
                 agents1[i].vehicle.update();
 
                 // Delete Food
@@ -235,8 +243,14 @@ int main(void) {
                 float angleDiffOne = angleOne - agents2[i].rotationTwo;
                 agents2[i].rotationTwo += angleDiffOne * 0.05f;
                 Vector2 shipCenter = { AgentTwoTexture.width / 2, AgentTwoTexture.height / 2 };
-                DrawTexturePro(AgentTwoTexture, shipRectangle, newRectangleOne, shipCenter, agents2[i].rotationTwo * RAD2DEG + 90, WHITE);
-
+                DrawTexturePro(
+                    AgentTwoTexture,
+                    shipRectangle,
+                    newRectangleOne,
+                    shipCenter,
+                    90 + (atan2(agents2[i].vehicle.velocity.y, agents2[i].vehicle.velocity.x) * 180 / PI),
+                    WHITE
+                );
                 // Circles Representing Vision Range for AgentTwo
                 DrawCircleLines(agents2[i].vehicle.location.x, agents2[i].vehicle.location.y, agents2[i].visionRange, BLACK);
 
@@ -266,7 +280,7 @@ int main(void) {
                 }
 
                 // Make the agent move towards the target
-                agents2[i].vehicle.arrive(Vector2{ agents2[i].targetX, agents2[i].targetY });
+                agents2[i].vehicle.arrive(Vector2{ agents2[i].targetX, agents2[i].targetY }, GetFrameTime());
                 agents2[i].vehicle.update();
 
                 //Delete Food
