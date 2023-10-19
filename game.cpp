@@ -7,10 +7,6 @@
 
 using namespace std;
 
-// TODO: Make the agent not slow down when it is close to the target
-// TODO: Movement even when there is no food in 
-
-
 // Structs
 typedef struct Food {
 public:
@@ -36,8 +32,6 @@ public:
     float xPos;
     float yPos;
     float maxSpeed = 3.0f;
-    clock_t timer;
-    float randTime = 0.0f;
     Vehicle vehicle;
 
     float targetX;
@@ -54,8 +48,6 @@ typedef struct AgentTwo {
     float xPos;
     float yPos;
     float maxSpeed;
-    clock_t timer;
-    float randTime = 0.0f;
     Vehicle vehicle;
 
     float targetX;
@@ -69,9 +61,9 @@ typedef struct AgentTwo {
 
 // Global Variables
 float randomCircleInterval = 30.0f;
-const int SCREEN_WIDTH = 900;
-const int SCREEN_HEIGHT = 1600;
-const int ROUND_DURATION = 10;
+const int SCREEN_WIDTH = 900 + 100;
+const int SCREEN_HEIGHT = 1600 + 100 + 75;
+const int ROUND_DURATION = 30;
 
 
 // Main Loop
@@ -80,8 +72,8 @@ int main(void) {
     // Initialization
     InitWindow(SCREEN_HEIGHT, SCREEN_WIDTH, "raylib [core] example - basic window");
     SetTargetFPS(60);
-    Texture2D AgentOneTexture = LoadTexture("C:\\Users\\Vigne\\OneDrive\\Desktop\\red.png");
-    Texture2D AgentTwoTexture = LoadTexture("C:\\Users\\Vigne\\OneDrive\\Desktop\\blue.png");
+    Texture2D AgentOneTexture = LoadTexture("C:\\Users\\Vigne\\Downloads\\raylib template - do not change names (1)\\raylib-game-template-main\\projects\\VS2022\\raylib_game\\red.png");
+    Texture2D AgentTwoTexture = LoadTexture("C:\\Users\\Vigne\\Downloads\\raylib template - do not change names (1)\\raylib-game-template-main\\projects\\VS2022\\raylib_game\\blue.png");
 
     // Resize the textures
     AgentOneTexture.width /= 5;
@@ -100,10 +92,8 @@ int main(void) {
     AgentOne agents1[5];
     AgentTwo agents2[5];
 
-    // Current time
+    // Timers
     clock_t currentTime = clock();
-
-    // Round Timer
     clock_t roundTimer = clock();
 
     for (int i = 0; i < 5; i++) {
@@ -113,8 +103,6 @@ int main(void) {
         agents1[i].vehicle.maxforce = 0.1f;
         agents1[i].vehicle.r = 3.0f;
         agents1[i].visionRange = 5.0f;
-        agents1[i].timer = clock();
-        agents1[i].randTime = 3.5 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (5 - 3.5)));
         agents1[i].targetX = rand() % SCREEN_HEIGHT;
         agents1[i].targetY = rand() % SCREEN_WIDTH;
         agents1[i].valid1 = true;
@@ -126,8 +114,6 @@ int main(void) {
         agents2[i].vehicle.maxforce = 0.1f;
         agents2[i].vehicle.r = 3.0f;
         agents2[i].visionRange = 100.0f;
-        agents2[i].timer = clock();
-        agents2[i].randTime = 3.5 + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (5 - 3.5)));
         agents2[i].targetX = rand() % SCREEN_HEIGHT;
         agents2[i].targetY = rand() % SCREEN_WIDTH;
         agents2[i].valid2 = true;
@@ -205,9 +191,10 @@ int main(void) {
                 DrawText(std::to_string(agents1[i].foodEaten).c_str(), agents1[i].vehicle.location.x, agents1[i].vehicle.location.y, 20, BLACK);
 
                 // if more than randTime seconds have passed, change the target
-                if (clock() - agents1[i].timer > agents1[i].randTime * CLOCKS_PER_SEC) {
-                    agents1[i].timer = clock();
-                    agents1[i].randTime = rand() % 10 + 1;
+                float dx = agents1[i].targetX - agents1[i].vehicle.location.x;
+                float dy = agents1[i].targetY - agents1[i].vehicle.location.y;
+                float distance = sqrt(dx * dx + dy * dy);
+                if (distance < 5.0f) {
                     agents1[i].targetX = rand() % SCREEN_HEIGHT;
                     agents1[i].targetY = rand() % SCREEN_WIDTH;
                 }
@@ -258,7 +245,7 @@ int main(void) {
 
                 if (agents2[i].hasBox)
                 {
-                    float speedFraction = agents1[i].vehicle.maxspeed / 15.0f;
+                    float speedFraction = agents1[i].vehicle.maxspeed / 10.0f;
                     int redComponent = static_cast<int>(255 * (1.0f - speedFraction));
                     int greenComponent = static_cast<int>(255 * speedFraction);
                     Color highlightColor = { redComponent, greenComponent, 0, 128 };
@@ -270,10 +257,12 @@ int main(void) {
                 }
 
                 // If no food particle is within range, then set a random target
-                if (!foundFood && (clock() - currentTime) > 5 * CLOCKS_PER_SEC) {
+                float dx = agents2[i].targetX - agents2[i].vehicle.location.x;
+                float dy = agents2[i].targetY - agents2[i].vehicle.location.y;
+                float distance = sqrt(dx * dx + dy * dy);
+                if (!foundFood && distance < 5.0f) {
                     agents2[i].targetX = rand() % SCREEN_HEIGHT;
                     agents2[i].targetY = rand() % SCREEN_WIDTH;
-                    currentTime = clock();
                 }
 
                 // Make the agent move towards the target
@@ -414,8 +403,6 @@ int main(void) {
                     agents2[i].foodEaten = 0;
                 }
             }
-
-
 
         }
 
