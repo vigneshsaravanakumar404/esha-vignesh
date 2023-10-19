@@ -172,13 +172,13 @@ int main(void) {
                 // Circles Representing Vision Range for AgentOne
                 if (agents1[i].hasRadius)
                 {
-                    DrawCircleLines(agents1[i].vehicle.location.x, agents1[i].vehicle.location.y, agents1[i].visionRange + 35, BLACK);
+                    DrawCircleLines(agents1[i].vehicle.location.x, agents1[i].vehicle.location.y, agents1[i].visionRange, BLACK);
 
                 }
 
 
                 // Rectangles Representing Speed for AgentOne
-                float speedFraction = agents1[i].vehicle.maxspeed / 25.0f;
+                float speedFraction = agents1[i].vehicle.maxspeed / 10.0f;
                 int redComponent = static_cast<int>(255 * (1.0f - speedFraction));
                 int greenComponent = static_cast<int>(255 * speedFraction);
                 Color highlightColor = { redComponent, greenComponent, 0, 128 };
@@ -194,7 +194,7 @@ int main(void) {
                 float dx = agents1[i].targetX - agents1[i].vehicle.location.x;
                 float dy = agents1[i].targetY - agents1[i].vehicle.location.y;
                 float distance = sqrt(dx * dx + dy * dy);
-                if (distance < 5.0f) {
+                if (distance < agents1[i].visionRange) {
                     agents1[i].targetX = rand() % SCREEN_HEIGHT;
                     agents1[i].targetY = rand() % SCREEN_WIDTH;
                 }
@@ -308,7 +308,7 @@ int main(void) {
                                 float distance = sqrt(dx * dx + dy * dy);
 
                                 if (distance < 200.0f) {
-                                    agents1[j].visionRange *= 1.5;
+                                    agents1[j].visionRange = ((agents1[j].visionRange) * 1.1) + 35;
                                     agents2[k].vehicle.maxspeed *= 1.5;
                                     agents1[k].hasRadius = true;
                                     agents2[j].hasBox = true;
