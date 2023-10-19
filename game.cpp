@@ -10,7 +10,7 @@ using namespace std;
 // TODO: Fix rotation of agent
 // TODO: Make the agent not slow down when it is close to the target
 // TODO: Movement even when there is no food in 
-// TODO: Cross Mutation Logic when two agents are next to each other
+// TODO: Create visual for cross mutation for change in blue speed
 
 // Structs
 typedef struct Food {
@@ -175,8 +175,8 @@ int main(void) {
                 Color highlightColor = { redComponent, greenComponent, 0, 128 };
                 int outlineThickness = 2;
                 Color outlineColor = { 0, 0, 0, 200 };
-                DrawRectangleLinesEx({ (float)x1 - outlineThickness, (float)y1 - outlineThickness, (float)AgentOneTexture.width + 2 * outlineThickness, (float)AgentOneTexture.height + 2 * outlineThickness }, outlineThickness, outlineColor);
-                DrawRectangle(x1, y1, AgentOneTexture.width, AgentOneTexture.height, highlightColor);
+                DrawRectangleLinesEx({ (float)x1 - outlineThickness, (float)y1 - outlineThickness, (float)AgentOneTexture.width + 2 * outlineThickness+agents1[i].visionRange, (float)AgentOneTexture.height + 2 * outlineThickness + agents1[i].visionRange}, outlineThickness, outlineColor);
+                DrawRectangle(x1, y1, AgentOneTexture.width + agents1[i].visionRange, AgentOneTexture.height + agents1[i].visionRange, highlightColor);
 
                 // Display the number of food particles eaten by the agent on the center of the agent
                 DrawText(std::to_string(agents1[i].foodEaten).c_str(), agents1[i].vehicle.location.x, agents1[i].vehicle.location.y, 20, BLACK);
@@ -199,7 +199,7 @@ int main(void) {
                     float dy = foods[j].yPos - agents1[i].vehicle.location.y;
                     float distance = sqrt(dx * dx + dy * dy);
 
-                    if (distance < 10.0f) {
+                    if (distance < agents1[i].visionRange) {
                         foods[j].xPos = 10000;
                         foods[j].yPos = 10000;
                         foods[j].color = colors[rand() % 5];
@@ -261,23 +261,30 @@ int main(void) {
                     foods[j] = Food(rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, colors[rand() % 5]);
                 }
 
-                /*
                 // if two agents are next to each other both of them get the highest speed and vision range between them
                 for (int j = 0; j < 5; j++) {
-                    for (int k = 0; k < 5; k++) {
-                        float dx = agents1[j].vehicle.location.x - agents2[k].vehicle.location.x;
-                        float dy = agents1[j].vehicle.location.y - agents2[k].vehicle.location.y;
-                        float distance = sqrt(dx * dx + dy * dy);
+                    if (agents1[j].valid1)
+                    {
+                        for (int k = 0; k < 5; k++) {
+                            if (agents2[k].valid2)
+                            {
+                                float dx = agents1[j].vehicle.location.x - agents2[k].vehicle.location.x;
+                                float dy = agents1[j].vehicle.location.y - agents2[k].vehicle.location.y;
+                                float distance = sqrt(dx * dx + dy * dy);
 
-                        if (distance < 10.0f) {
-                            agents1[j].vehicle.maxspeed *= 1.5;
-                            agents2[k].visionRange *= 1.5;
-
+                                if (distance < 200.0f) {
+                                    agents1[j].visionRange *= 1.5;
+                                    agents2[k].vehicle.maxspeed *= 1.5;
+                                }
+                            }
+                            
                         }
+
                     }
+                    
                 }
 
-                */
+                
 
 
                 // Evolution Logic
