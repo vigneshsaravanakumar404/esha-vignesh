@@ -11,7 +11,7 @@ using namespace std;
 // TODO: Make the agent not slow down when it is close to the target
 // TODO: Movement even when there is no food in 
 // TODO: Create visual for cross mutation for change in blue speed
-
+// TODO: Center red triangle after vision range increases
 // Structs
 typedef struct Food {
 public:
