@@ -34,6 +34,7 @@ public:
 typedef struct AgentOne {
 public:
     bool valid1;
+    bool hasRadius;
     float visionRange;
     float xPos;
     float yPos;
@@ -51,6 +52,7 @@ public:
 };
 typedef struct AgentTwo {
     bool valid2;
+    bool hasBox;
     float visionRange = 5.0f;
     float xPos;
     float yPos;
@@ -64,6 +66,7 @@ typedef struct AgentTwo {
 
     int foodEaten = 0;
 };
+
 
 // Global Variables
 float randomCircleInterval = 30.0f;
@@ -163,14 +166,13 @@ int main(void) {
 
             }
 
-            // Draw the agents using the texture centered at the stored coordinates
             if (agents1[i].valid1)
             {
                 // Calculate the top-left corner coordinates to center the texture at the agent's location
                 int x1 = agents1[i].vehicle.location.x - AgentOneTexture.width / 2;
                 int y1 = agents1[i].vehicle.location.y - AgentOneTexture.height / 2;
 
-                //rotate agents
+                // Rotate agents
                 Rectangle shipRectangle = { 0,0, AgentOneTexture.width, AgentOneTexture.height };
                 Rectangle newRectangleOne = { agents1[i].vehicle.location.x,agents1[i].vehicle.location.y, AgentOneTexture.width, AgentOneTexture.height };
                 float angleOne = atan2f(agents1[i].targetY - agents1[i].vehicle.location.y, agents1[i].targetX - agents1[i].vehicle.location.x);
@@ -178,6 +180,8 @@ int main(void) {
                 agents1[i].rotationOne += angleDiffOne * 0.05f;
                 Vector2 shipCenter = { AgentOneTexture.width / 2, AgentOneTexture.height / 2 };
                 DrawTexturePro(AgentOneTexture, shipRectangle, newRectangleOne, shipCenter, agents1[i].rotationOne * RAD2DEG + 90, WHITE);
+
+
 
                 // Rectangles Representing Speed for AgentOne
                 float speedFraction = agents1[i].vehicle.maxspeed / 25.0f;
