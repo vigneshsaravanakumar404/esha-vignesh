@@ -21,7 +21,7 @@ public:
 
     void update();
     void applyForce(Vector2 force);
-    void arrive(Vector2 target);
+    void arrive(Vector2 target, float deltaTime);
     float map(float value, float fromLow, float fromHigh, float toLow, float toHigh);
 
 };
