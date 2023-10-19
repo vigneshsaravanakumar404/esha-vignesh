@@ -65,6 +65,8 @@ typedef struct AgentTwo {
     float targetY;
 
     int foodEaten = 0;
+
+    float rotationTwo = 0;
 };
 
 
@@ -118,6 +120,7 @@ int main(void) {
         agents1[i].targetX = rand() % SCREEN_HEIGHT;
         agents1[i].targetY = rand() % SCREEN_WIDTH;
         agents1[i].valid1 = true;
+        agents1[i].hasRadius = false;
 
         // Has big range, small speed
         agents2[i].vehicle = Vehicle(rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, agents2->maxSpeed);
@@ -130,6 +133,7 @@ int main(void) {
         agents2[i].targetX = rand() % SCREEN_HEIGHT;
         agents2[i].targetY = rand() % SCREEN_WIDTH;
         agents2[i].valid2 = true;
+        agents2[i].hasBox = false;
     }
 
 
@@ -181,6 +185,12 @@ int main(void) {
                 Vector2 shipCenter = { AgentOneTexture.width / 2, AgentOneTexture.height / 2 };
                 DrawTexturePro(AgentOneTexture, shipRectangle, newRectangleOne, shipCenter, agents1[i].rotationOne * RAD2DEG + 90, WHITE);
 
+                //
+                if (agents1[i].hasRadius)
+                {
+                    DrawCircleLines(agents1[i].vehicle.location.x, agents1[i].vehicle.location.y, agents1[i].visionRange+10, BLACK);
+
+                }
 
 
                 // Rectangles Representing Speed for AgentOne
@@ -190,8 +200,8 @@ int main(void) {
                 Color highlightColor = { redComponent, greenComponent, 0, 128 };
                 int outlineThickness = 2;
                 Color outlineColor = { 0, 0, 0, 200 };
-                DrawRectangleLinesEx({ (float)x1 - outlineThickness, (float)y1 - outlineThickness, (float)AgentOneTexture.width + 2 * outlineThickness+agents1[i].visionRange, (float)AgentOneTexture.height + 2 * outlineThickness + agents1[i].visionRange}, outlineThickness, outlineColor);
-                DrawRectangle(x1, y1, AgentOneTexture.width + agents1[i].visionRange, AgentOneTexture.height + agents1[i].visionRange, highlightColor);
+                DrawRectangleLinesEx({ (float)x1 - outlineThickness, (float)y1 - outlineThickness, (float)AgentOneTexture.width + 2 * outlineThickness, (float)AgentOneTexture.height + 2 * outlineThickness}, outlineThickness, outlineColor);
+                DrawRectangle(x1, y1, AgentOneTexture.width, AgentOneTexture.height, highlightColor);
 
                 // Display the number of food particles eaten by the agent on the center of the agent
                 DrawText(std::to_string(agents1[i].foodEaten).c_str(), agents1[i].vehicle.location.x, agents1[i].vehicle.location.y, 20, BLACK);
@@ -232,13 +242,34 @@ int main(void) {
                 int x2 = agents2[i].vehicle.location.x - AgentTwoTexture.width / 2;
                 int y2 = agents2[i].vehicle.location.y - AgentTwoTexture.height / 2;
 
-                DrawTexture(AgentTwoTexture, x2, y2, WHITE);
+
+                // Rotate agents
+                Rectangle shipRectangle = { 0,0, AgentTwoTexture.width, AgentTwoTexture.height };
+                Rectangle newRectangleOne = { agents2[i].vehicle.location.x,agents2[i].vehicle.location.y, AgentTwoTexture.width, AgentTwoTexture.height };
+                float angleOne = atan2f(agents2[i].targetY - agents2[i].vehicle.location.y, agents2[i].targetX - agents2[i].vehicle.location.x);
+                float angleDiffOne = angleOne - agents2[i].rotationTwo;
+                agents2[i].rotationTwo += angleDiffOne * 0.05f;
+                Vector2 shipCenter = { AgentTwoTexture.width / 2, AgentTwoTexture.height / 2 };
+                DrawTexturePro(AgentTwoTexture, shipRectangle, newRectangleOne, shipCenter, agents2[i].rotationTwo * RAD2DEG + 90, WHITE);
 
                 // Circles Representing Vision Range for AgentTwo
                 DrawCircleLines(agents2[i].vehicle.location.x, agents2[i].vehicle.location.y, agents2[i].visionRange, BLACK);
 
                 // Display the number of food particles eaten by the agent on the center of the agent
                 DrawText(std::to_string(agents2[i].foodEaten).c_str(), agents2[i].vehicle.location.x, agents2[i].vehicle.location.y, 20, BLACK);
+
+                if (agents2[i].hasBox)
+                {
+                    float speedFraction = agents1[i].vehicle.maxspeed / 15.0f;
+                    int redComponent = static_cast<int>(255 * (1.0f - speedFraction));
+                    int greenComponent = static_cast<int>(255 * speedFraction);
+                    Color highlightColor = { redComponent, greenComponent, 0, 128 };
+                    int outlineThickness = 2;
+                    Color outlineColor = { 0, 0, 0, 200 };
+                    DrawRectangleLinesEx({ (float)x2 - outlineThickness, (float)y2 - outlineThickness, (float)AgentTwoTexture.width + 2 * outlineThickness, (float)AgentTwoTexture.height + 2 * outlineThickness }, outlineThickness, outlineColor);
+                    DrawRectangle(x2, y2, AgentTwoTexture.width, AgentTwoTexture.height, highlightColor);
+
+                }
             
                 // If no food particle is within range, then set a random target
                 if (!foundFood && (clock() - currentTime) > 5 * CLOCKS_PER_SEC) {
@@ -292,7 +323,8 @@ int main(void) {
                                 if (distance < 200.0f) {
                                     agents1[j].visionRange *= 1.5;
                                     agents2[k].vehicle.maxspeed *= 1.5;
-                                }
+                                    agents1[k].hasRadius = true;
+                                    agents2[j].hasBox = true;                                }
                             }
                             
                         }
